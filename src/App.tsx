@@ -168,51 +168,78 @@ function SecurityPage() {
   );
 }
 
-function App() {
-  const { isAuthenticated, user } = useAuthStore();
-
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuthStore();
+  
   if (!isAuthenticated) {
-    return <LoginForm />;
+    return <Navigate to="/login" replace />;
   }
+  
+  return <>{children}</>;
+}
+
+// Login Route Component
+function LoginRoute() {
+  const { isAuthenticated, user } = useAuthStore();
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <LoginForm />;
+}
+
+function App() {
+  const { user } = useAuthStore();
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/login" element={<LoginRoute />} />
+        
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route 
-            path="/dashboard" 
+            path="dashboard" 
             element={user?.role === 'doctor' ? <DoctorDashboard /> : <PatientDashboard />} 
           />
           
           {/* Patient Routes */}
           {user?.role === 'patient' && (
             <>
-              <Route path="/health" element={<HealthPage />} />
-              <Route path="/games" element={<GamesPage />} />
-              <Route path="/appointments" element={<AppointmentsPage />} />
-              <Route path="/records" element={<RecordsPage />} />
-              <Route path="/ai-analysis" element={<AIAnalysisPage />} />
+              <Route path="health" element={<HealthPage />} />
+              <Route path="games" element={<GamesPage />} />
+              <Route path="appointments" element={<AppointmentsPage />} />
+              <Route path="records" element={<RecordsPage />} />
+              <Route path="ai-analysis" element={<AIAnalysisPage />} />
             </>
           )}
           
           {/* Doctor Routes */}
           {user?.role === 'doctor' && (
             <>
-              <Route path="/patients" element={<PatientsPage />} />
-              <Route path="/diagnostics" element={<DiagnosticsPage />} />
-              <Route path="/ai-tools" element={<AIAnalysisPage />} />
-              <Route path="/test-results" element={<RecordsPage />} />
-              <Route path="/telemedicine" element={<AppointmentsPage />} />
-              <Route path="/research" element={<RecordsPage />} />
-              <Route path="/analytics" element={<HealthPage />} />
+              <Route path="patients" element={<PatientsPage />} />
+              <Route path="diagnostics" element={<DiagnosticsPage />} />
+              <Route path="ai-tools" element={<AIAnalysisPage />} />
+              <Route path="test-results" element={<RecordsPage />} />
+              <Route path="telemedicine" element={<AppointmentsPage />} />
+              <Route path="research" element={<RecordsPage />} />
+              <Route path="analytics" element={<HealthPage />} />
             </>
           )}
           
           {/* Common Routes */}
-          <Route path="/advanced" element={<AdvancedPage />} />
-          <Route path="/security" element={<SecurityPage />} />
+          <Route path="advanced" element={<AdvancedPage />} />
+          <Route path="security" element={<SecurityPage />} />
         </Route>
+        
+        {/* Catch all route - redirect to login if not authenticated, dashboard if authenticated */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
