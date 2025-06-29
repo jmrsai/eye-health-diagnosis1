@@ -15,7 +15,8 @@ import {
   TestTube,
   Video,
   BookOpen,
-  X
+  X,
+  GraduationCap
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,7 +52,8 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
   ];
 
   const commonNavigation = [
-    { name: 'Advanced Tools', href: '/advanced', icon: Eye },
+    { name: 'Vision Charts', href: '/advanced', icon: Eye },
+    { name: 'Case Studies', href: '/education', icon: GraduationCap },
     { name: 'Security', href: '/security', icon: Shield },
   ];
 

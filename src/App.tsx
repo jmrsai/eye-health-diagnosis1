@@ -7,6 +7,8 @@ import PatientDashboard from './components/Dashboard/PatientDashboard';
 import DoctorDashboard from './components/Dashboard/DoctorDashboard';
 import GameCard from './components/Games/GameCard';
 import GameSession from './components/Games/GameSession';
+import VisionChartGenerator from './components/VisionChart/VisionChartGenerator';
+import CaseStudies from './components/Education/CaseStudies';
 import { useHealthStore } from './store/healthStore';
 import { motion } from 'framer-motion';
 
@@ -147,14 +149,7 @@ function DiagnosticsPage() {
 }
 
 function AdvancedPage() {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Advanced Tools</h1>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-600 dark:text-gray-400">Advanced medical tools coming soon...</p>
-      </div>
-    </div>
-  );
+  return <VisionChartGenerator />;
 }
 
 function SecurityPage() {
@@ -166,6 +161,10 @@ function SecurityPage() {
       </div>
     </div>
   );
+}
+
+function EducationPage() {
+  return <CaseStudies />;
 }
 
 // Protected Route Component
@@ -236,6 +235,7 @@ function App() {
           {/* Common Routes */}
           <Route path="advanced" element={<AdvancedPage />} />
           <Route path="security" element={<SecurityPage />} />
+          <Route path="education" element={<EducationPage />} />
         </Route>
         
         {/* Catch all route - redirect to login if not authenticated, dashboard if authenticated */}
