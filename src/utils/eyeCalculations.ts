@@ -52,6 +52,14 @@ export interface AMDAssessment {
   treatmentUrgency: 'routine' | 'urgent' | 'emergent';
 }
 
+export interface DiabeticRetinopathyRisk {
+  riskScore: number;
+  riskLevel: 'low' | 'moderate' | 'high' | 'very_high';
+  annualRisk: number;
+  recommendations: string[];
+  screeningInterval: number; // months
+}
+
 // Visual Acuity Calculations
 export function calculateVisualAcuity(distance: number, smallestLine: number): VisualAcuityResult {
   const decimal = 20 / smallestLine;
@@ -69,6 +77,134 @@ export function calculateVisualAcuity(distance: number, smallestLine: number): V
     snellen: `20/${smallestLine}`,
     logMAR,
     category
+  };
+}
+
+// Diabetic Retinopathy Risk Calculator
+export function calculateDiabeticRetinopathyRisk(
+  diabetesDuration: number, // years
+  hba1c: number, // percentage
+  systolicBP: number, // mmHg
+  diastolicBP: number, // mmHg
+  totalCholesterol: number, // mg/dL
+  smokingStatus: boolean,
+  diabetesType: 1 | 2 = 2,
+  age: number = 50
+): DiabeticRetinopathyRisk {
+  let riskScore = 0;
+  const recommendations: string[] = [];
+
+  // Duration factor (strongest predictor)
+  if (diabetesDuration < 5) {
+    riskScore += 1;
+  } else if (diabetesDuration < 10) {
+    riskScore += 3;
+  } else if (diabetesDuration < 15) {
+    riskScore += 5;
+  } else if (diabetesDuration < 20) {
+    riskScore += 7;
+  } else {
+    riskScore += 10;
+  }
+
+  // HbA1c factor
+  if (hba1c < 7) {
+    riskScore += 1;
+    recommendations.push('Excellent glycemic control - maintain current regimen');
+  } else if (hba1c < 8) {
+    riskScore += 3;
+    recommendations.push('Good glycemic control - minor adjustments may be beneficial');
+  } else if (hba1c < 9) {
+    riskScore += 5;
+    recommendations.push('Suboptimal glycemic control - intensify diabetes management');
+  } else if (hba1c < 10) {
+    riskScore += 7;
+    recommendations.push('Poor glycemic control - urgent diabetes management required');
+  } else {
+    riskScore += 10;
+    recommendations.push('Very poor glycemic control - immediate intensive intervention needed');
+  }
+
+  // Blood pressure factor
+  const meanBP = (systolicBP + diastolicBP * 2) / 3;
+  if (meanBP < 90) {
+    riskScore += 1;
+  } else if (meanBP < 100) {
+    riskScore += 2;
+  } else if (meanBP < 110) {
+    riskScore += 4;
+    recommendations.push('Elevated blood pressure - consider antihypertensive therapy');
+  } else {
+    riskScore += 6;
+    recommendations.push('Hypertension present - blood pressure control essential');
+  }
+
+  // Cholesterol factor
+  if (totalCholesterol < 200) {
+    riskScore += 1;
+  } else if (totalCholesterol < 240) {
+    riskScore += 2;
+    recommendations.push('Borderline high cholesterol - lifestyle modifications recommended');
+  } else {
+    riskScore += 4;
+    recommendations.push('High cholesterol - lipid management therapy indicated');
+  }
+
+  // Smoking factor
+  if (smokingStatus) {
+    riskScore += 3;
+    recommendations.push('Smoking cessation critical - significantly increases retinopathy risk');
+  }
+
+  // Diabetes type factor
+  if (diabetesType === 1) {
+    riskScore += 2; // Type 1 generally higher risk after duration adjustment
+  }
+
+  // Age factor (protective in some cases, risk in others)
+  if (age > 65) {
+    riskScore += 1;
+  }
+
+  // Calculate annual risk percentage and determine risk level
+  let annualRisk: number;
+  let riskLevel: DiabeticRetinopathyRisk['riskLevel'];
+  let screeningInterval: number;
+
+  if (riskScore <= 8) {
+    riskLevel = 'low';
+    annualRisk = 2 + (riskScore * 0.5);
+    screeningInterval = 24;
+    recommendations.push('Annual diabetic eye examination sufficient');
+  } else if (riskScore <= 15) {
+    riskLevel = 'moderate';
+    annualRisk = 6 + (riskScore - 8) * 1.5;
+    screeningInterval = 12;
+    recommendations.push('Annual eye examination with close monitoring');
+  } else if (riskScore <= 22) {
+    riskLevel = 'high';
+    annualRisk = 17 + (riskScore - 15) * 2;
+    screeningInterval = 6;
+    recommendations.push('6-month eye examinations recommended');
+  } else {
+    riskLevel = 'very_high';
+    annualRisk = Math.min(45 + (riskScore - 22) * 2.5, 85);
+    screeningInterval = 3;
+    recommendations.push('3-month eye examinations essential');
+    recommendations.push('Consider immediate ophthalmology referral');
+  }
+
+  // Add general recommendations
+  recommendations.push('Maintain optimal blood sugar control (HbA1c < 7%)');
+  recommendations.push('Control blood pressure (<130/80 mmHg)');
+  recommendations.push('Regular exercise and healthy diet');
+
+  return {
+    riskScore,
+    riskLevel,
+    annualRisk: Math.round(annualRisk * 10) / 10,
+    recommendations,
+    screeningInterval
   };
 }
 
