@@ -19,21 +19,7 @@ import {
   PolarRadiusAxis,
   Radar
 } from 'recharts';
-import { 
-  Scalpel, 
-  TrendingUp, 
-  Award, 
-  Clock, 
-  Target, 
-  Eye,
-  Activity,
-  Users,
-  Calendar,
-  Download,
-  Filter,
-  Play,
-  Pause
-} from 'lucide-react';
+import { Scale as Scalpel, TrendingUp, Award, Clock, Target, Eye, Activity, Users, Calendar, Download, Filter, Play, Pause } from 'lucide-react';
 
 interface SurgicalMetrics {
   surgeonId: string;
