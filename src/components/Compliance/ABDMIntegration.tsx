@@ -1,24 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Shield, 
-  CheckCircle, 
-  AlertTriangle, 
-  Users, 
-  Database, 
-  Key, 
-  FileText, 
-  Globe,
-  Lock,
-  Smartphone,
-  QrCode,
-  Download,
-  Upload,
-  Sync,
-  Settings,
-  Award,
-  Building
-} from 'lucide-react';
+import { Shield, CheckCircle, AlertTriangle, Users, Database, Key, FileText, Globe, Lock, Smartphone, QrCode, Download, Upload, FolderSync as Sync, Settings, Award, Building } from 'lucide-react';
 
 interface ABHARecord {
   abhaId: string;
