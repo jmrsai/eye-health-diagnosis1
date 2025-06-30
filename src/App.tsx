@@ -168,11 +168,7 @@ function LoginRoute() {
     return <Navigate to="/dashboard" replace />;
   }
   
-  return (
-    <Router>
-      <LoginForm />
-    </Router>
-  );
+  return <LoginForm />;
 }
 
 function App() {
