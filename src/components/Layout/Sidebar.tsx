@@ -16,7 +16,9 @@ import {
   Video,
   BookOpen,
   X,
-  GraduationCap
+  GraduationCap,
+  Calculator,
+  Scan
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,8 +45,8 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
   const doctorNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Patients', href: '/patients', icon: Users },
-    { name: 'Diagnostics', href: '/diagnostics', icon: Stethoscope },
-    { name: 'AI Tools', href: '/ai-tools', icon: Brain },
+    { name: 'Diagnostics', href: '/diagnostics', icon: Calculator },
+    { name: 'AI Tools', href: '/ai-tools', icon: Scan },
     { name: 'Test Results', href: '/test-results', icon: TestTube },
     { name: 'Telemedicine', href: '/telemedicine', icon: Video },
     { name: 'Research', href: '/research', icon: BookOpen },

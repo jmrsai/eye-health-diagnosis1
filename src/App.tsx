@@ -9,6 +9,9 @@ import GameCard from './components/Games/GameCard';
 import GameSession from './components/Games/GameSession';
 import VisionChartGenerator from './components/VisionChart/VisionChartGenerator';
 import CaseStudies from './components/Education/CaseStudies';
+import DiagnosticsCalculator from './components/Advanced/DiagnosticsCalculator';
+import OCTAnalysis from './components/Advanced/OCTAnalysis';
+import TeleMedicine from './components/Advanced/TeleMedicine';
 import { useHealthStore } from './store/healthStore';
 import { motion } from 'framer-motion';
 
@@ -94,14 +97,7 @@ function HealthPage() {
 }
 
 function AppointmentsPage() {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Appointments</h1>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-600 dark:text-gray-400">Appointment scheduling and management coming soon...</p>
-      </div>
-    </div>
-  );
+  return <TeleMedicine />;
 }
 
 function RecordsPage() {
@@ -116,14 +112,7 @@ function RecordsPage() {
 }
 
 function AIAnalysisPage() {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Analysis</h1>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-600 dark:text-gray-400">AI-powered health analysis coming soon...</p>
-      </div>
-    </div>
-  );
+  return <OCTAnalysis />;
 }
 
 function PatientsPage() {
@@ -138,14 +127,7 @@ function PatientsPage() {
 }
 
 function DiagnosticsPage() {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Diagnostics</h1>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-600 dark:text-gray-400">Diagnostic tools coming soon...</p>
-      </div>
-    </div>
-  );
+  return <DiagnosticsCalculator />;
 }
 
 function AdvancedPage() {
@@ -186,7 +168,11 @@ function LoginRoute() {
     return <Navigate to="/dashboard" replace />;
   }
   
-  return <LoginForm />;
+  return (
+    <Router>
+      <LoginForm />
+    </Router>
+  );
 }
 
 function App() {

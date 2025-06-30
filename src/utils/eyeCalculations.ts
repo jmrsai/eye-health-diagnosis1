@@ -24,6 +24,34 @@ export interface RetinalAnalysis {
   diagnosis: string[];
 }
 
+export interface DiabeticsRetinopathyStaging {
+  stage: 'none' | 'mild' | 'moderate' | 'severe' | 'proliferative';
+  maculaEdema: boolean;
+  riskScore: number;
+  recommendations: string[];
+  followUpInterval: number; // months
+}
+
+export interface GlaucomaAssessment {
+  riskLevel: 'low' | 'moderate' | 'high' | 'severe';
+  cupDiscRatio: number;
+  rnflThickness: number;
+  visualFieldDefects: boolean;
+  iop: number;
+  progressionRate: number;
+  treatmentRecommendation: string;
+}
+
+export interface AMDAssessment {
+  type: 'dry' | 'wet' | 'geographic_atrophy';
+  stage: 'early' | 'intermediate' | 'advanced';
+  drusenSize: 'small' | 'medium' | 'large';
+  pigmentChanges: boolean;
+  neovascularization: boolean;
+  centralVisionThreat: boolean;
+  treatmentUrgency: 'routine' | 'urgent' | 'emergent';
+}
+
 // Visual Acuity Calculations
 export function calculateVisualAcuity(distance: number, smallestLine: number): VisualAcuityResult {
   const decimal = 20 / smallestLine;
@@ -45,19 +73,22 @@ export function calculateVisualAcuity(distance: number, smallestLine: number): V
 }
 
 // Intraocular Pressure Assessment
-export function assessIntraocularPressure(pressure: number, age: number): IntraocularPressureResult {
+export function assessIntraocularPressure(pressure: number, age: number, cornealThickness: number = 550): IntraocularPressureResult {
+  // Adjust for corneal thickness (Goldmann correction)
+  const correctedPressure = pressure + (cornealThickness - 550) * 0.007;
+  
   let risk: IntraocularPressureResult['risk'];
   let recommendation: string;
 
   const ageAdjustedNormal = 16 + (age - 40) * 0.1;
 
-  if (pressure <= ageAdjustedNormal) {
+  if (correctedPressure <= ageAdjustedNormal) {
     risk = 'low';
     recommendation = 'Normal pressure. Continue regular eye exams.';
-  } else if (pressure <= ageAdjustedNormal + 5) {
+  } else if (correctedPressure <= ageAdjustedNormal + 5) {
     risk = 'moderate';
     recommendation = 'Slightly elevated. Monitor closely and consider additional testing.';
-  } else if (pressure <= ageAdjustedNormal + 10) {
+  } else if (correctedPressure <= ageAdjustedNormal + 10) {
     risk = 'high';
     recommendation = 'Elevated pressure. Comprehensive glaucoma evaluation recommended.';
   } else {
@@ -65,226 +96,550 @@ export function assessIntraocularPressure(pressure: number, age: number): Intrao
     recommendation = 'Significantly elevated. Urgent ophthalmologic consultation required.';
   }
 
-  return { pressure, risk, recommendation };
+  return { pressure: correctedPressure, risk, recommendation };
 }
 
-// Diabetic Retinopathy Risk Calculator
-export function calculateDiabeticRetinopathyRisk(
-  diabetesDuration: number,
-  hba1c: number,
-  bloodPressure: { systolic: number; diastolic: number },
-  cholesterol: number,
-  smoking: boolean
-): number {
+// Advanced Diabetic Retinopathy Staging
+export function stageDiabeticRetinopathy(
+  microaneurysms: number,
+  hemorrhages: number,
+  hardExudates: number,
+  cottonWoolSpots: number,
+  venousBeading: boolean,
+  irma: boolean,
+  neovascularization: boolean,
+  maculaEdema: boolean
+): DiabeticsRetinopathyStaging {
+  let stage: DiabeticsRetinopathyStaging['stage'];
   let riskScore = 0;
+  const recommendations: string[] = [];
+  let followUpInterval = 12;
 
-  // Duration of diabetes (years)
-  if (diabetesDuration < 5) riskScore += 1;
-  else if (diabetesDuration < 10) riskScore += 2;
-  else if (diabetesDuration < 15) riskScore += 3;
-  else riskScore += 4;
+  // Calculate risk score
+  riskScore += microaneurysms * 0.1;
+  riskScore += hemorrhages * 0.2;
+  riskScore += hardExudates * 0.15;
+  riskScore += cottonWoolSpots * 0.3;
+  if (venousBeading) riskScore += 2;
+  if (irma) riskScore += 2.5;
+  if (neovascularization) riskScore += 5;
 
-  // HbA1c levels
-  if (hba1c < 7) riskScore += 1;
-  else if (hba1c < 8) riskScore += 2;
-  else if (hba1c < 9) riskScore += 3;
-  else riskScore += 4;
+  // Determine stage
+  if (riskScore === 0) {
+    stage = 'none';
+    followUpInterval = 12;
+    recommendations.push('Annual diabetic eye exam');
+  } else if (riskScore < 2) {
+    stage = 'mild';
+    followUpInterval = 12;
+    recommendations.push('Annual follow-up', 'Optimize glycemic control');
+  } else if (riskScore < 5) {
+    stage = 'moderate';
+    followUpInterval = 6;
+    recommendations.push('6-month follow-up', 'Consider laser treatment consultation');
+  } else if (riskScore < 8) {
+    stage = 'severe';
+    followUpInterval = 3;
+    recommendations.push('3-month follow-up', 'Panretinal photocoagulation indicated');
+  } else {
+    stage = 'proliferative';
+    followUpInterval = 1;
+    recommendations.push('Urgent treatment required', 'Anti-VEGF therapy', 'Vitrectomy consideration');
+  }
 
-  // Blood pressure
-  const meanBP = (bloodPressure.systolic + bloodPressure.diastolic) / 2;
-  if (meanBP > 100) riskScore += 2;
-  else if (meanBP > 90) riskScore += 1;
+  if (maculaEdema) {
+    recommendations.push('Anti-VEGF injection for macular edema');
+    followUpInterval = Math.min(followUpInterval, 1);
+  }
 
-  // Cholesterol
-  if (cholesterol > 240) riskScore += 2;
-  else if (cholesterol > 200) riskScore += 1;
-
-  // Smoking
-  if (smoking) riskScore += 2;
-
-  return Math.min(riskScore / 15 * 100, 100); // Convert to percentage
+  return {
+    stage,
+    maculaEdema,
+    riskScore,
+    recommendations,
+    followUpInterval
+  };
 }
 
-// Glaucoma Risk Assessment
-export function assessGlaucomaRisk(
-  age: number,
+// Comprehensive Glaucoma Assessment
+export function assessGlaucoma(
   iop: number,
-  cupToDiscRatio: number,
+  cupDiscRatio: number,
+  rnflThickness: number,
+  visualFieldMD: number,
+  age: number,
   familyHistory: boolean,
-  ethnicity: 'caucasian' | 'african' | 'hispanic' | 'asian' | 'other',
-  myopia: number
-): number {
+  ethnicity: 'caucasian' | 'african' | 'hispanic' | 'asian' | 'other'
+): GlaucomaAssessment {
   let riskScore = 0;
-
-  // Age factor
-  if (age > 60) riskScore += 3;
-  else if (age > 40) riskScore += 2;
-  else if (age > 30) riskScore += 1;
-
-  // IOP
+  
+  // IOP contribution
   if (iop > 25) riskScore += 4;
   else if (iop > 21) riskScore += 3;
   else if (iop > 18) riskScore += 2;
-  else if (iop > 15) riskScore += 1;
 
   // Cup-to-disc ratio
-  if (cupToDiscRatio > 0.7) riskScore += 4;
-  else if (cupToDiscRatio > 0.5) riskScore += 3;
-  else if (cupToDiscRatio > 0.3) riskScore += 2;
+  if (cupDiscRatio > 0.8) riskScore += 4;
+  else if (cupDiscRatio > 0.6) riskScore += 3;
+  else if (cupDiscRatio > 0.4) riskScore += 2;
+
+  // RNFL thickness
+  if (rnflThickness < 70) riskScore += 4;
+  else if (rnflThickness < 85) riskScore += 3;
+  else if (rnflThickness < 95) riskScore += 2;
+
+  // Visual field defects
+  const visualFieldDefects = visualFieldMD < -2;
+  if (visualFieldDefects) {
+    if (visualFieldMD < -12) riskScore += 5;
+    else if (visualFieldMD < -6) riskScore += 4;
+    else riskScore += 3;
+  }
+
+  // Age factor
+  if (age > 70) riskScore += 2;
+  else if (age > 60) riskScore += 1;
 
   // Family history
-  if (familyHistory) riskScore += 3;
+  if (familyHistory) riskScore += 2;
 
   // Ethnicity
   if (ethnicity === 'african') riskScore += 2;
   else if (ethnicity === 'hispanic') riskScore += 1;
 
-  // Myopia
-  if (myopia > 6) riskScore += 2;
-  else if (myopia > 3) riskScore += 1;
+  // Determine risk level and treatment
+  let riskLevel: GlaucomaAssessment['riskLevel'];
+  let treatmentRecommendation: string;
+  let progressionRate = 0;
 
-  return Math.min(riskScore / 20 * 100, 100);
+  if (riskScore < 3) {
+    riskLevel = 'low';
+    treatmentRecommendation = 'Observation with regular monitoring';
+    progressionRate = 0.1;
+  } else if (riskScore < 6) {
+    riskLevel = 'moderate';
+    treatmentRecommendation = 'Consider topical therapy, target IOP <18 mmHg';
+    progressionRate = 0.3;
+  } else if (riskScore < 10) {
+    riskLevel = 'high';
+    treatmentRecommendation = 'Initiate therapy, target IOP <15 mmHg';
+    progressionRate = 0.6;
+  } else {
+    riskLevel = 'severe';
+    treatmentRecommendation = 'Aggressive therapy, consider surgery, target IOP <12 mmHg';
+    progressionRate = 1.0;
+  }
+
+  return {
+    riskLevel,
+    cupDiscRatio,
+    rnflThickness,
+    visualFieldDefects,
+    iop,
+    progressionRate,
+    treatmentRecommendation
+  };
 }
 
-// AMD Risk Calculator
-export function calculateAMDRisk(
-  age: number,
-  smoking: boolean,
-  familyHistory: boolean,
-  diet: 'poor' | 'average' | 'good',
-  supplements: boolean,
-  sunExposure: 'low' | 'moderate' | 'high'
-): number {
-  let riskScore = 0;
+// AMD Assessment Algorithm
+export function assessAMD(
+  drusenSize: 'none' | 'small' | 'medium' | 'large',
+  drusenArea: number,
+  pigmentChanges: boolean,
+  geographicAtrophy: boolean,
+  neovascularization: boolean,
+  subretinalFluid: boolean,
+  age: number
+): AMDAssessment {
+  let stage: AMDAssessment['stage'];
+  let type: AMDAssessment['type'];
+  let centralVisionThreat = false;
+  let treatmentUrgency: AMDAssessment['treatmentUrgency'] = 'routine';
 
-  // Age is the strongest risk factor
-  if (age > 75) riskScore += 5;
-  else if (age > 65) riskScore += 4;
-  else if (age > 55) riskScore += 3;
-  else if (age > 45) riskScore += 2;
+  // Determine type
+  if (neovascularization || subretinalFluid) {
+    type = 'wet';
+    centralVisionThreat = true;
+    treatmentUrgency = 'emergent';
+  } else if (geographicAtrophy) {
+    type = 'geographic_atrophy';
+    centralVisionThreat = true;
+    treatmentUrgency = 'urgent';
+  } else {
+    type = 'dry';
+  }
 
-  // Smoking
-  if (smoking) riskScore += 4;
+  // Determine stage
+  if (drusenSize === 'none' || (drusenSize === 'small' && drusenArea < 125)) {
+    stage = 'early';
+  } else if (drusenSize === 'medium' || (drusenSize === 'large' && drusenArea < 250)) {
+    stage = 'intermediate';
+    if (pigmentChanges) centralVisionThreat = true;
+  } else {
+    stage = 'advanced';
+    centralVisionThreat = true;
+    if (treatmentUrgency === 'routine') treatmentUrgency = 'urgent';
+  }
 
-  // Family history
-  if (familyHistory) riskScore += 3;
-
-  // Diet
-  if (diet === 'poor') riskScore += 2;
-  else if (diet === 'average') riskScore += 1;
-
-  // Supplements (protective)
-  if (!supplements) riskScore += 1;
-
-  // Sun exposure
-  if (sunExposure === 'high') riskScore += 2;
-  else if (sunExposure === 'moderate') riskScore += 1;
-
-  return Math.min(riskScore / 18 * 100, 100);
+  return {
+    type,
+    stage,
+    drusenSize,
+    pigmentChanges,
+    neovascularization,
+    centralVisionThreat,
+    treatmentUrgency
+  };
 }
 
-// Retinal Thickness Analysis
+// Retinal Thickness Analysis with AI Enhancement
 export function analyzeRetinalThickness(
   centralThickness: number,
   averageThickness: number,
+  volumeData: number[],
   age: number,
   gender: 'male' | 'female'
 ): {
-  status: 'normal' | 'thin' | 'thick' | 'edema';
+  status: 'normal' | 'thin' | 'thick' | 'edema' | 'atrophy';
   recommendation: string;
+  aiConfidence: number;
+  riskFactors: string[];
 } {
-  // Normal values adjusted for age and gender
   const normalCentral = gender === 'male' ? 270 - (age - 40) * 0.5 : 260 - (age - 40) * 0.4;
   const normalAverage = gender === 'male' ? 290 - (age - 40) * 0.3 : 280 - (age - 40) * 0.3;
+  
+  const riskFactors: string[] = [];
+  let status: 'normal' | 'thin' | 'thick' | 'edema' | 'atrophy';
+  let recommendation: string;
+  let aiConfidence = 0.95;
 
-  if (centralThickness > normalCentral + 50 || averageThickness > normalAverage + 30) {
-    return {
-      status: 'edema',
-      recommendation: 'Macular edema detected. Immediate ophthalmologic evaluation required.'
-    };
-  } else if (centralThickness > normalCentral + 20 || averageThickness > normalAverage + 15) {
-    return {
-      status: 'thick',
-      recommendation: 'Retinal thickening observed. Follow-up recommended within 3 months.'
-    };
-  } else if (centralThickness < normalCentral - 30 || averageThickness < normalAverage - 20) {
-    return {
-      status: 'thin',
-      recommendation: 'Retinal thinning noted. Consider additional testing for atrophy.'
-    };
+  // Analyze volume data for patterns
+  const volumeVariability = Math.sqrt(volumeData.reduce((sum, v, i, arr) => {
+    const mean = arr.reduce((a, b) => a + b) / arr.length;
+    return sum + Math.pow(v - mean, 2);
+  }, 0) / volumeData.length);
+
+  if (centralThickness > normalCentral + 100) {
+    status = 'edema';
+    recommendation = 'Significant macular edema detected. Immediate anti-VEGF therapy indicated.';
+    riskFactors.push('Severe fluid accumulation', 'Vision-threatening edema');
+    aiConfidence = 0.98;
+  } else if (centralThickness > normalCentral + 50) {
+    status = 'thick';
+    recommendation = 'Macular thickening observed. Consider anti-VEGF therapy or steroid injection.';
+    riskFactors.push('Moderate fluid retention', 'Progressive thickening');
+    aiConfidence = 0.92;
+  } else if (centralThickness < normalCentral - 50 && volumeVariability > 20) {
+    status = 'atrophy';
+    recommendation = 'Geographic atrophy detected. Monitor progression and consider complement inhibitors.';
+    riskFactors.push('Progressive atrophy', 'Central vision threat');
+    aiConfidence = 0.89;
+  } else if (centralThickness < normalCentral - 30) {
+    status = 'thin';
+    recommendation = 'Retinal thinning noted. Monitor for progression and underlying causes.';
+    riskFactors.push('Tissue loss', 'Potential progression risk');
+    aiConfidence = 0.85;
   } else {
-    return {
-      status: 'normal',
-      recommendation: 'Retinal thickness within normal limits. Continue routine monitoring.'
-    };
+    status = 'normal';
+    recommendation = 'Retinal thickness within normal limits. Continue routine monitoring.';
+    aiConfidence = 0.96;
   }
+
+  // Age-related risk factors
+  if (age > 65) riskFactors.push('Age-related changes');
+  if (gender === 'female' && age > 50) riskFactors.push('Post-menopausal changes');
+
+  return { status, recommendation, aiConfidence, riskFactors };
 }
 
-// Comprehensive Eye Health Score
-export function calculateEyeHealthScore(
+// Comprehensive Eye Health Score with AI Integration
+export function calculateComprehensiveEyeHealthScore(
   visualAcuity: { left: number; right: number },
   iop: { left: number; right: number },
+  retinalThickness: { central: number; average: number },
+  visualField: { md: number; psd: number },
   age: number,
   riskFactors: {
     diabetes: boolean;
     hypertension: boolean;
     smoking: boolean;
     familyHistory: boolean;
+    myopia: number;
   }
 ): {
-  score: number;
+  overallScore: number;
   category: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  componentScores: {
+    vision: number;
+    pressure: number;
+    structure: number;
+    function: number;
+  };
   recommendations: string[];
+  aiInsights: string[];
+  riskAssessment: {
+    glaucoma: number;
+    amd: number;
+    diabeticRetinopathy: number;
+  };
 } {
-  let score = 100;
+  let overallScore = 100;
   const recommendations: string[] = [];
+  const aiInsights: string[] = [];
 
-  // Visual acuity impact
+  // Component scores
+  const componentScores = {
+    vision: 100,
+    pressure: 100,
+    structure: 100,
+    function: 100
+  };
+
+  // Visual acuity assessment
   const avgVA = (visualAcuity.left + visualAcuity.right) / 2;
   if (avgVA < 0.8) {
-    score -= (0.8 - avgVA) * 50;
-    recommendations.push('Consider vision correction or further evaluation');
+    const visionLoss = (0.8 - avgVA) * 100;
+    componentScores.vision -= visionLoss;
+    overallScore -= visionLoss * 0.3;
+    recommendations.push('Comprehensive refraction and vision correction evaluation');
+    aiInsights.push(`Visual acuity reduction detected (${(avgVA * 100).toFixed(0)}% of normal)`);
   }
 
-  // IOP impact
+  // IOP assessment
   const avgIOP = (iop.left + iop.right) / 2;
   if (avgIOP > 21) {
-    score -= (avgIOP - 21) * 2;
-    recommendations.push('Monitor intraocular pressure closely');
+    const pressureExcess = (avgIOP - 21) * 5;
+    componentScores.pressure -= pressureExcess;
+    overallScore -= pressureExcess * 0.25;
+    recommendations.push('Glaucoma evaluation and IOP monitoring required');
+    aiInsights.push(`Elevated intraocular pressure detected (${avgIOP.toFixed(1)} mmHg)`);
   }
 
-  // Age factor
-  if (age > 60) {
-    score -= (age - 60) * 0.5;
-    recommendations.push('Increase frequency of comprehensive eye exams');
+  // Structural assessment
+  if (retinalThickness.central > 300 || retinalThickness.central < 200) {
+    const structuralAbnormality = Math.abs(retinalThickness.central - 250) / 250 * 100;
+    componentScores.structure -= structuralAbnormality;
+    overallScore -= structuralAbnormality * 0.2;
+    recommendations.push('Retinal imaging and structural analysis indicated');
+    aiInsights.push(`Retinal thickness abnormality detected (${retinalThickness.central}μm)`);
   }
 
-  // Risk factors
+  // Functional assessment
+  if (visualField.md < -2) {
+    const fieldDefect = Math.abs(visualField.md) * 10;
+    componentScores.function -= fieldDefect;
+    overallScore -= fieldDefect * 0.25;
+    recommendations.push('Visual field monitoring and neurological evaluation');
+    aiInsights.push(`Visual field defect detected (MD: ${visualField.md.toFixed(1)} dB)`);
+  }
+
+  // Risk factor adjustments
+  const riskAssessment = {
+    glaucoma: 0,
+    amd: 0,
+    diabeticRetinopathy: 0
+  };
+
   if (riskFactors.diabetes) {
-    score -= 10;
-    recommendations.push('Annual diabetic retinopathy screening required');
+    overallScore -= 10;
+    riskAssessment.diabeticRetinopathy = 35 + (age > 50 ? 15 : 0);
+    recommendations.push('Annual diabetic retinopathy screening mandatory');
+    aiInsights.push('Diabetes significantly increases retinopathy risk');
   }
+
   if (riskFactors.hypertension) {
-    score -= 5;
-    recommendations.push('Monitor for hypertensive retinopathy');
+    overallScore -= 5;
+    riskAssessment.glaucoma += 10;
+    recommendations.push('Blood pressure optimization for eye health');
   }
+
   if (riskFactors.smoking) {
-    score -= 8;
-    recommendations.push('Smoking cessation strongly recommended');
+    overallScore -= 8;
+    riskAssessment.amd = 25 + (age > 60 ? 20 : 0);
+    recommendations.push('Smoking cessation critical for preventing AMD');
+    aiInsights.push('Smoking is the primary modifiable risk factor for AMD');
   }
+
   if (riskFactors.familyHistory) {
-    score -= 5;
-    recommendations.push('Genetic counseling and enhanced screening may be beneficial');
+    overallScore -= 5;
+    riskAssessment.glaucoma += 15;
+    recommendations.push('Enhanced screening due to genetic predisposition');
   }
 
-  score = Math.max(0, Math.min(100, score));
+  if (riskFactors.myopia > 6) {
+    overallScore -= 3;
+    riskAssessment.glaucoma += 8;
+    recommendations.push('High myopia monitoring for retinal complications');
+  }
 
+  // Age-related adjustments
+  if (age > 60) {
+    overallScore -= (age - 60) * 0.5;
+    riskAssessment.amd += (age - 60) * 2;
+    riskAssessment.glaucoma += (age - 60) * 1.5;
+    recommendations.push('Age-appropriate comprehensive eye examination frequency');
+  }
+
+  // Ensure scores are within bounds
+  overallScore = Math.max(0, Math.min(100, overallScore));
+  Object.keys(componentScores).forEach(key => {
+    componentScores[key as keyof typeof componentScores] = Math.max(0, Math.min(100, componentScores[key as keyof typeof componentScores]));
+  });
+
+  // Determine category
   let category: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
-  if (score >= 90) category = 'excellent';
-  else if (score >= 75) category = 'good';
-  else if (score >= 60) category = 'fair';
-  else if (score >= 40) category = 'poor';
+  if (overallScore >= 90) category = 'excellent';
+  else if (overallScore >= 75) category = 'good';
+  else if (overallScore >= 60) category = 'fair';
+  else if (overallScore >= 40) category = 'poor';
   else category = 'critical';
 
-  return { score, category, recommendations };
+  // AI-powered insights
+  if (category === 'excellent') {
+    aiInsights.push('Optimal eye health detected. Continue current preventive measures.');
+  } else if (category === 'critical') {
+    aiInsights.push('Multiple risk factors detected. Immediate comprehensive evaluation required.');
+  }
+
+  return {
+    overallScore,
+    category,
+    componentScores,
+    recommendations,
+    aiInsights,
+    riskAssessment
+  };
+}
+
+// Color Vision Assessment
+export function assessColorVision(
+  ishiharaScore: number,
+  farnsworthScore: number,
+  testType: 'screening' | 'diagnostic'
+): {
+  type: 'normal' | 'protanomaly' | 'protanopia' | 'deuteranomaly' | 'deuteranopia' | 'tritanomaly' | 'tritanopia' | 'monochromacy';
+  severity: 'mild' | 'moderate' | 'severe';
+  recommendation: string;
+  occupationalImpact: string[];
+} {
+  let type: 'normal' | 'protanomaly' | 'protanopia' | 'deuteranomaly' | 'deuteranopia' | 'tritanomaly' | 'tritanopia' | 'monochromacy';
+  let severity: 'mild' | 'moderate' | 'severe';
+  let recommendation: string;
+  const occupationalImpact: string[] = [];
+
+  // Analyze Ishihara results
+  if (ishiharaScore >= 13) {
+    type = 'normal';
+    severity = 'mild';
+    recommendation = 'Normal color vision. No restrictions.';
+  } else if (ishiharaScore >= 9) {
+    type = 'deuteranomaly';
+    severity = 'mild';
+    recommendation = 'Mild red-green color deficiency. Most activities unaffected.';
+    occupationalImpact.push('May affect some electrical work', 'Traffic signal recognition may be impaired');
+  } else if (ishiharaScore >= 5) {
+    type = 'deuteranomaly';
+    severity = 'moderate';
+    recommendation = 'Moderate red-green color deficiency. Some occupational limitations.';
+    occupationalImpact.push('Electrical work restrictions', 'Aviation limitations', 'Some medical procedures affected');
+  } else {
+    type = 'deuteranopia';
+    severity = 'severe';
+    recommendation = 'Severe red-green color deficiency. Significant occupational restrictions.';
+    occupationalImpact.push('Commercial driving restrictions', 'Aviation disqualification', 'Electrical work prohibited');
+  }
+
+  // Refine with Farnsworth D-15 if available
+  if (testType === 'diagnostic' && farnsworthScore > 0) {
+    if (farnsworthScore > 2.0) {
+      severity = 'severe';
+    } else if (farnsworthScore > 1.5) {
+      severity = 'moderate';
+    }
+  }
+
+  return { type, severity, recommendation, occupationalImpact };
+}
+
+// Pediatric Vision Assessment
+export function assessPediatricVision(
+  age: number, // months
+  visualBehavior: {
+    fixation: boolean;
+    following: boolean;
+    reaching: boolean;
+    socialSmiling: boolean;
+  },
+  reflexes: {
+    pupillary: boolean;
+    blink: boolean;
+    optokinetic: boolean;
+  }
+): {
+  developmentStatus: 'normal' | 'delayed' | 'concerning';
+  milestones: string[];
+  recommendations: string[];
+  followUpInterval: number; // months
+} {
+  const milestones: string[] = [];
+  const recommendations: string[] = [];
+  let developmentStatus: 'normal' | 'delayed' | 'concerning' = 'normal';
+  let followUpInterval = 12;
+
+  // Age-appropriate milestones
+  if (age >= 2) {
+    if (!reflexes.pupillary || !reflexes.blink) {
+      developmentStatus = 'concerning';
+      recommendations.push('Immediate pediatric ophthalmology referral');
+      followUpInterval = 1;
+    }
+  }
+
+  if (age >= 6) {
+    if (!visualBehavior.fixation) {
+      developmentStatus = 'delayed';
+      recommendations.push('Vision stimulation therapy', 'Pediatric ophthalmology evaluation');
+      followUpInterval = 3;
+    } else {
+      milestones.push('Fixation achieved');
+    }
+  }
+
+  if (age >= 12) {
+    if (!visualBehavior.following) {
+      developmentStatus = 'delayed';
+      recommendations.push('Tracking exercises', 'Neurological evaluation');
+      followUpInterval = 3;
+    } else {
+      milestones.push('Visual tracking developed');
+    }
+  }
+
+  if (age >= 18) {
+    if (!visualBehavior.reaching) {
+      developmentStatus = 'delayed';
+      recommendations.push('Hand-eye coordination therapy');
+      followUpInterval = 6;
+    } else {
+      milestones.push('Hand-eye coordination normal');
+    }
+  }
+
+  if (age >= 24) {
+    if (!visualBehavior.socialSmiling) {
+      developmentStatus = 'concerning';
+      recommendations.push('Comprehensive developmental assessment');
+      followUpInterval = 3;
+    } else {
+      milestones.push('Social visual interaction normal');
+    }
+  }
+
+  if (developmentStatus === 'normal') {
+    recommendations.push('Continue routine pediatric eye care');
+    if (age < 36) followUpInterval = 6;
+    else followUpInterval = 12;
+  }
+
+  return { developmentStatus, milestones, recommendations, followUpInterval };
 }
