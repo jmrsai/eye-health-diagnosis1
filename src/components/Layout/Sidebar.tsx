@@ -18,7 +18,12 @@ import {
   X,
   GraduationCap,
   Calculator,
-  Scan
+  Scan,
+  Headphones,
+  Layers,
+  MessageSquare,
+  Zap,
+  Globe
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,9 +42,11 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Health Metrics', href: '/health', icon: Activity },
     { name: 'Vision Games', href: '/games', icon: Gamepad2 },
+    { name: 'VR Therapy', href: '/vr-therapy', icon: Headphones },
     { name: 'Appointments', href: '/appointments', icon: Calendar },
     { name: 'Medical Records', href: '/records', icon: FileText },
     { name: 'AI Analysis', href: '/ai-analysis', icon: Brain },
+    { name: 'Digital Twin', href: '/digital-twin', icon: Layers },
   ];
 
   const doctorNavigation = [
@@ -47,15 +54,23 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
     { name: 'Patients', href: '/patients', icon: Users },
     { name: 'Diagnostics', href: '/diagnostics', icon: Calculator },
     { name: 'AI Tools', href: '/ai-tools', icon: Scan },
+    { name: 'Surgical Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Test Results', href: '/test-results', icon: TestTube },
     { name: 'Telemedicine', href: '/telemedicine', icon: Video },
+    { name: 'Digital Twin', href: '/digital-twin', icon: Layers },
     { name: 'Research', href: '/research', icon: BookOpen },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  ];
+
+  const aiAdvancedNavigation = [
+    { name: 'EyeGPT Assistant', href: '/eyegpt', icon: MessageSquare, desc: 'AI Clinical Co-pilot' },
+    { name: 'AR Surgical Overlay', href: '/surgical-overlay', icon: Zap, desc: 'Augmented Reality Surgery' },
+    { name: 'VR Vision Therapy', href: '/vr-therapy', icon: Headphones, desc: 'Immersive Rehabilitation' },
   ];
 
   const commonNavigation = [
     { name: 'Vision Charts', href: '/advanced', icon: Eye },
     { name: 'Case Studies', href: '/education', icon: GraduationCap },
+    { name: 'ABDM Compliance', href: '/compliance', icon: Globe },
     { name: 'Security', href: '/security', icon: Shield },
   ];
 
@@ -145,10 +160,59 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
               })}
             </div>
 
+            {/* AI & Advanced Features */}
+            <div className="pt-6">
+              <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                AI & Advanced Features
+              </h3>
+              <div className="mt-2 space-y-1">
+                {aiAdvancedNavigation.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                        isActive
+                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                      )}
+                      title={item.desc}
+                    >
+                      <item.icon
+                        className={cn(
+                          "mr-3 h-5 w-5 transition-colors",
+                          isActive
+                            ? "text-white"
+                            : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                        )}
+                      />
+                      <div className="flex-1">
+                        <div className={cn(
+                          "text-sm font-medium",
+                          isActive ? "text-white" : ""
+                        )}>
+                          {item.name}
+                        </div>
+                        <div className={cn(
+                          "text-xs",
+                          isActive ? "text-purple-100" : "text-gray-500 dark:text-gray-400"
+                        )}>
+                          {item.desc}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Common navigation */}
             <div className="pt-6">
               <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Advanced Features
+                Tools & Compliance
               </h3>
               <div className="mt-2 space-y-1">
                 {commonNavigation.map((item) => {

@@ -14,6 +14,12 @@ import OCTAnalysis from './components/Advanced/OCTAnalysis';
 import TeleMedicine from './components/Advanced/TeleMedicine';
 import ClinicalWorkflow from './components/Advanced/ClinicalWorkflow';
 import MedicalReporting from './components/Advanced/MedicalReporting';
+import EyeGPTAssistant from './components/AI/EyeGPTAssistant';
+import SurgicalOverlay from './components/AR/SurgicalOverlay';
+import VisionTherapy from './components/VR/VisionTherapy';
+import SurgicalAnalytics from './components/Analytics/SurgicalAnalytics';
+import PatientDigitalTwin from './components/DigitalTwin/PatientDigitalTwin';
+import ABDMIntegration from './components/Compliance/ABDMIntegration';
 import { useHealthStore } from './store/healthStore';
 import { motion } from 'framer-motion';
 
@@ -123,18 +129,38 @@ function AdvancedPage() {
 }
 
 function SecurityPage() {
+  return <ABDMIntegration />;
+}
+
+function EducationPage() {
+  return <CaseStudies />;
+}
+
+function AIToolsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Security</h1>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-gray-600 dark:text-gray-400">Security and privacy settings coming soon...</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <EyeGPTAssistant />
+        </div>
+        <div className="space-y-6">
+          <SurgicalOverlay />
+        </div>
       </div>
     </div>
   );
 }
 
-function EducationPage() {
-  return <CaseStudies />;
+function VRTherapyPage() {
+  return <VisionTherapy />;
+}
+
+function AnalyticsPage() {
+  return <SurgicalAnalytics />;
+}
+
+function DigitalTwinPage() {
+  return <PatientDigitalTwin />;
 }
 
 // Protected Route Component
@@ -150,7 +176,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Login Route Component
 function LoginRoute() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -186,6 +212,8 @@ function App() {
               <Route path="appointments" element={<AppointmentsPage />} />
               <Route path="records" element={<RecordsPage />} />
               <Route path="ai-analysis" element={<AIAnalysisPage />} />
+              <Route path="vr-therapy" element={<VRTherapyPage />} />
+              <Route path="digital-twin" element={<DigitalTwinPage />} />
             </>
           )}
           
@@ -194,11 +222,13 @@ function App() {
             <>
               <Route path="patients" element={<PatientsPage />} />
               <Route path="diagnostics" element={<DiagnosticsPage />} />
-              <Route path="ai-tools" element={<AIAnalysisPage />} />
+              <Route path="ai-tools" element={<AIToolsPage />} />
               <Route path="test-results" element={<RecordsPage />} />
               <Route path="telemedicine" element={<AppointmentsPage />} />
               <Route path="research" element={<RecordsPage />} />
-              <Route path="analytics" element={<HealthPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="surgical-overlay" element={<SurgicalOverlay />} />
+              <Route path="digital-twin" element={<DigitalTwinPage />} />
             </>
           )}
           
@@ -206,6 +236,9 @@ function App() {
           <Route path="advanced" element={<AdvancedPage />} />
           <Route path="security" element={<SecurityPage />} />
           <Route path="education" element={<EducationPage />} />
+          <Route path="eyegpt" element={<EyeGPTAssistant />} />
+          <Route path="vr-therapy" element={<VRTherapyPage />} />
+          <Route path="compliance" element={<ABDMIntegration />} />
         </Route>
         
         {/* Catch all route - redirect to login if not authenticated, dashboard if authenticated */}
