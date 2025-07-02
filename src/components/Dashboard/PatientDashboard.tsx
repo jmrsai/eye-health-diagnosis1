@@ -9,26 +9,80 @@ import {
   Clock,
   Gamepad2,
   Brain,
-  Shield
+  Shield,
+  Heart,
+  Thermometer,
+  Droplets,
+  Zap
 } from 'lucide-react';
 import { useHealthStore } from '../../store/healthStore';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 
 const mockHealthData = [
-  { date: '2024-01-01', blinkRate: 12, eyeStrain: 4, screenTime: 8 },
-  { date: '2024-01-02', blinkRate: 15, eyeStrain: 3, screenTime: 7 },
-  { date: '2024-01-03', blinkRate: 18, eyeStrain: 2, screenTime: 6 },
-  { date: '2024-01-04', blinkRate: 16, eyeStrain: 3, screenTime: 7.5 },
-  { date: '2024-01-05', blinkRate: 20, eyeStrain: 1, screenTime: 5 },
-  { date: '2024-01-06', blinkRate: 17, eyeStrain: 2, screenTime: 6.5 },
-  { date: '2024-01-07', blinkRate: 19, eyeStrain: 1, screenTime: 5.5 },
+  { date: '2024-01-01', blinkRate: 12, eyeStrain: 4, screenTime: 8, heartRate: 72, temperature: 98.6 },
+  { date: '2024-01-02', blinkRate: 15, eyeStrain: 3, screenTime: 7, heartRate: 75, temperature: 98.4 },
+  { date: '2024-01-03', blinkRate: 18, eyeStrain: 2, screenTime: 6, heartRate: 73, temperature: 98.7 },
+  { date: '2024-01-04', blinkRate: 16, eyeStrain: 3, screenTime: 7.5, heartRate: 74, temperature: 98.5 },
+  { date: '2024-01-05', blinkRate: 20, eyeStrain: 1, screenTime: 5, heartRate: 71, temperature: 98.6 },
+  { date: '2024-01-06', blinkRate: 17, eyeStrain: 2, screenTime: 6.5, heartRate: 76, temperature: 98.3 },
+  { date: '2024-01-07', blinkRate: 19, eyeStrain: 1, screenTime: 5.5, heartRate: 72, temperature: 98.5 },
+];
+
+const healthScoreData = [
+  { name: 'Vision Health', value: 87, color: '#2196f3' },
+  { name: 'Eye Strain', value: 92, color: '#4caf50' },
+  { name: 'Sleep Quality', value: 78, color: '#ff9800' },
+  { name: 'Exercise', value: 85, color: '#9c27b0' },
 ];
 
 export default function PatientDashboard() {
   const { metrics } = useHealthStore();
 
-  const stats = [
+  const vitalSigns = [
+    {
+      name: 'Heart Rate',
+      value: '72',
+      unit: 'bpm',
+      change: '+2%',
+      changeType: 'positive',
+      icon: Heart,
+      color: 'from-red-500 to-pink-500',
+      trend: 'stable'
+    },
+    {
+      name: 'Blood Pressure',
+      value: '120/80',
+      unit: 'mmHg',
+      change: 'Normal',
+      changeType: 'positive',
+      icon: Activity,
+      color: 'from-blue-500 to-cyan-500',
+      trend: 'stable'
+    },
+    {
+      name: 'Temperature',
+      value: '98.6',
+      unit: '°F',
+      change: 'Normal',
+      changeType: 'positive',
+      icon: Thermometer,
+      color: 'from-orange-500 to-red-500',
+      trend: 'stable'
+    },
+    {
+      name: 'Oxygen Sat',
+      value: '98',
+      unit: '%',
+      change: '+1%',
+      changeType: 'positive',
+      icon: Droplets,
+      color: 'from-cyan-500 to-blue-500',
+      trend: 'improving'
+    },
+  ];
+
+  const eyeHealthMetrics = [
     {
       name: 'Blink Rate',
       value: `${metrics?.blinkRate || 0}/min`,
@@ -36,6 +90,7 @@ export default function PatientDashboard() {
       changeType: 'positive',
       icon: Eye,
       color: 'from-blue-500 to-blue-600',
+      description: 'Healthy blinking pattern'
     },
     {
       name: 'Screen Time',
@@ -44,6 +99,7 @@ export default function PatientDashboard() {
       changeType: 'positive',
       icon: Clock,
       color: 'from-green-500 to-green-600',
+      description: 'Reduced digital exposure'
     },
     {
       name: 'Eye Strain',
@@ -52,6 +108,7 @@ export default function PatientDashboard() {
       changeType: 'positive',
       icon: AlertTriangle,
       color: 'from-yellow-500 to-yellow-600',
+      description: 'Minimal discomfort'
     },
     {
       name: 'Health Score',
@@ -60,6 +117,7 @@ export default function PatientDashboard() {
       changeType: 'positive',
       icon: Activity,
       color: 'from-purple-500 to-purple-600',
+      description: 'Excellent overall health'
     },
   ];
 
@@ -68,19 +126,21 @@ export default function PatientDashboard() {
       id: 1,
       type: 'game',
       title: 'Completed Blink Training Pro',
-      description: 'Improved blink rate by 15%',
+      description: 'Improved blink rate by 15% - Great progress!',
       time: '2 hours ago',
       icon: Gamepad2,
       color: 'text-blue-600',
+      score: 95
     },
     {
       id: 2,
       type: 'analysis',
       title: 'AI Health Analysis Complete',
-      description: 'No concerning findings detected',
+      description: 'No concerning findings detected. All metrics normal.',
       time: '4 hours ago',
       icon: Brain,
       color: 'text-green-600',
+      confidence: 94
     },
     {
       id: 3,
@@ -90,188 +150,338 @@ export default function PatientDashboard() {
       time: '1 day',
       icon: Calendar,
       color: 'text-purple-600',
+      type_label: 'Follow-up'
+    },
+    {
+      id: 4,
+      type: 'security',
+      title: 'Security Scan Complete',
+      description: 'All health data encrypted and secure',
+      time: '6 hours ago',
+      icon: Shield,
+      color: 'text-emerald-600',
+      status: 'Protected'
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-medical-lg">
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-primary-500 to-medical-500 rounded-xl p-6 text-white"
+        className="medical-card-elevated bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-600 text-white overflow-hidden relative"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Good morning, Sarah!</h1>
-            <p className="text-primary-100 mt-1">
-              Your eye health is looking great today. Keep up the good work!
-            </p>
-          </div>
-          <div className="hidden md:block">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-              <Eye className="h-12 w-12 text-white" />
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="relative z-10 p-medical-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-medical-3xl font-medium mb-2">Good morning, Sarah!</h1>
+              <p className="text-primary-100 text-medical-lg mb-medical-sm">
+                Your eye health is looking excellent today. Keep up the great work!
+              </p>
+              <div className="flex items-center space-x-medical-md">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-300" />
+                  <span className="text-medical-sm text-primary-100">All systems healthy</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Zap className="h-5 w-5 text-yellow-300" />
+                  <span className="text-medical-sm text-primary-100">AI monitoring active</span>
+                </div>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <div className="bg-white/20 backdrop-blur-sm rounded-medical-xl p-medical-lg">
+                <Eye className="h-16 w-16 text-white animate-pulse-medical" />
+              </div>
             </div>
           </div>
         </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {stat.name}
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {stat.value}
-                </p>
-                <div className="flex items-center mt-2">
-                  <span className={`text-sm font-medium ${
-                    stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+      {/* Vital Signs */}
+      <div>
+        <h2 className="text-medical-xl font-medium text-neutral-900 dark:text-neutral-100 mb-medical-md">
+          Vital Signs
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-medical-md">
+          {vitalSigns.map((vital, index) => (
+            <motion.div
+              key={vital.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="medical-card group hover:shadow-medical-elevated transition-all duration-300"
+            >
+              <div className="p-medical-lg">
+                <div className="flex items-center justify-between mb-medical-md">
+                  <div className={`p-3 rounded-medical-lg bg-gradient-to-r ${vital.color} shadow-elevation-2`}>
+                    <vital.icon className="h-6 w-6 text-white" />
+                  </div>
+                  <div className={`px-2 py-1 rounded-full text-medical-xs font-medium ${
+                    vital.trend === 'improving' ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400' :
+                    vital.trend === 'stable' ? 'bg-info-100 text-info-800 dark:bg-info-900/20 dark:text-info-400' :
+                    'bg-warning-100 text-warning-800 dark:bg-warning-900/20 dark:text-warning-400'
                   }`}>
-                    {stat.change}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
-                    vs last week
-                  </span>
+                    {vital.trend}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-medical-sm font-medium text-neutral-600 dark:text-neutral-400">
+                    {vital.name}
+                  </p>
+                  <div className="flex items-baseline space-x-1">
+                    <p className="text-medical-2xl font-bold text-neutral-900 dark:text-neutral-100">
+                      {vital.value}
+                    </p>
+                    <p className="text-medical-sm text-neutral-500 dark:text-neutral-400">
+                      {vital.unit}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <span className={`text-medical-sm font-medium ${
+                      vital.changeType === 'positive' ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'
+                    }`}>
+                      {vital.change}
+                    </span>
+                    <span className="text-medical-sm text-neutral-500 dark:text-neutral-400">
+                      vs last week
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className={`p-3 rounded-lg bg-gradient-to-r ${stat.color}`}>
-                <stat.icon className="h-6 w-6 text-white" />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Eye Health Metrics */}
+      <div>
+        <h2 className="text-medical-xl font-medium text-neutral-900 dark:text-neutral-100 mb-medical-md">
+          Eye Health Metrics
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-medical-md">
+          {eyeHealthMetrics.map((metric, index) => (
+            <motion.div
+              key={metric.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 + 0.4 }}
+              className="medical-card group hover:shadow-medical-elevated transition-all duration-300"
+            >
+              <div className="p-medical-lg">
+                <div className="flex items-center justify-between mb-medical-md">
+                  <div className={`p-3 rounded-medical-lg bg-gradient-to-r ${metric.color} shadow-elevation-2`}>
+                    <metric.icon className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-medical-sm font-medium text-neutral-600 dark:text-neutral-400">
+                    {metric.name}
+                  </p>
+                  <p className="text-medical-2xl font-bold text-neutral-900 dark:text-neutral-100">
+                    {metric.value}
+                  </p>
+                  <p className="text-medical-xs text-neutral-500 dark:text-neutral-400">
+                    {metric.description}
+                  </p>
+                  <div className="flex items-center space-x-1 pt-1">
+                    <span className={`text-medical-sm font-medium ${
+                      metric.changeType === 'positive' ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'
+                    }`}>
+                      {metric.change}
+                    </span>
+                    <span className="text-medical-sm text-neutral-500 dark:text-neutral-400">
+                      vs last week
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-medical-lg">
         {/* Health Trends */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+          transition={{ delay: 0.8 }}
+          className="lg:col-span-2 medical-card"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Health Trends
-            </h3>
-            <TrendingUp className="h-5 w-5 text-green-500" />
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockHealthData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                  formatter={(value, name) => [value, name === 'blinkRate' ? 'Blink Rate' : name === 'eyeStrain' ? 'Eye Strain' : 'Screen Time']}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="blinkRate" 
-                  stroke="#3b82f6" 
-                  strokeWidth={2}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="eyeStrain" 
-                  stroke="#ef4444" 
-                  strokeWidth={2}
-                  dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="p-medical-lg">
+            <div className="flex items-center justify-between mb-medical-lg">
+              <h3 className="text-medical-lg font-medium text-neutral-900 dark:text-neutral-100">
+                Health Trends
+              </h3>
+              <TrendingUp className="h-5 w-5 text-success-500" />
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={mockHealthData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip 
+                    labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                    formatter={(value, name) => [value, name === 'blinkRate' ? 'Blink Rate' : name === 'eyeStrain' ? 'Eye Strain' : 'Screen Time']}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="blinkRate" 
+                    stroke="#2196f3" 
+                    strokeWidth={3}
+                    dot={{ fill: '#2196f3', strokeWidth: 2, r: 4 }}
+                    name="Blink Rate"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="eyeStrain" 
+                    stroke="#f44336" 
+                    strokeWidth={3}
+                    dot={{ fill: '#f44336', strokeWidth: 2, r: 4 }}
+                    name="Eye Strain"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </motion.div>
 
-        {/* Screen Time Analysis */}
+        {/* Health Score Breakdown */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+          transition={{ delay: 0.9 }}
+          className="medical-card"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Screen Time Analysis
-            </h3>
-            <Clock className="h-5 w-5 text-blue-500" />
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockHealthData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                  formatter={(value) => [`${value}h`, 'Screen Time']}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="screenTime" 
-                  stroke="#06b6d4" 
-                  fill="#06b6d4"
-                  fillOpacity={0.3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="p-medical-lg">
+            <div className="flex items-center justify-between mb-medical-lg">
+              <h3 className="text-medical-lg font-medium text-neutral-900 dark:text-neutral-100">
+                Health Score
+              </h3>
+              <Activity className="h-5 w-5 text-primary-500" />
+            </div>
+            <div className="h-48 mb-medical-md">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={healthScoreData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {healthScoreData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [`${value}%`, 'Score']} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-2">
+              {healthScoreData.map((item) => (
+                <div key={item.name} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-medical-sm text-neutral-600 dark:text-neutral-400">
+                      {item.name}
+                    </span>
+                  </div>
+                  <span className="text-medical-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    {item.value}%
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
       </div>
 
       {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-medical-lg">
         {/* Recent Activity */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+          transition={{ delay: 1.0 }}
+          className="lg:col-span-2 medical-card"
         >
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-            Recent Activity
-          </h3>
-          <div className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start space-x-4">
-                <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700 ${activity.color}`}>
-                  <activity.icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {activity.title}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {activity.description}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    {activity.time}
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="p-medical-lg">
+            <h3 className="text-medical-lg font-medium text-neutral-900 dark:text-neutral-100 mb-medical-lg">
+              Recent Activity
+            </h3>
+            <div className="space-y-medical-md">
+              {recentActivities.map((activity, index) => (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.1 + index * 0.1 }}
+                  className="flex items-start space-x-medical-md p-medical-md rounded-medical-lg hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all duration-200 group"
+                >
+                  <div className={`p-2 rounded-medical-lg bg-neutral-100 dark:bg-neutral-800 ${activity.color} group-hover:scale-110 transition-transform duration-200`}>
+                    <activity.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-medical-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        {activity.title}
+                      </p>
+                      <p className="text-medical-xs text-neutral-500 dark:text-neutral-400">
+                        {activity.time}
+                      </p>
+                    </div>
+                    <p className="text-medical-sm text-neutral-600 dark:text-neutral-300 mt-1">
+                      {activity.description}
+                    </p>
+                    <div className="flex items-center space-x-medical-sm mt-2">
+                      {activity.score && (
+                        <span className="medical-chip-success">
+                          Score: {activity.score}%
+                        </span>
+                      )}
+                      {activity.confidence && (
+                        <span className="medical-chip-info">
+                          Confidence: {activity.confidence}%
+                        </span>
+                      )}
+                      {activity.type_label && (
+                        <span className="medical-chip-primary">
+                          {activity.type_label}
+                        </span>
+                      )}
+                      {activity.status && (
+                        <span className="medical-chip-success">
+                          {activity.status}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </motion.div>
 
@@ -279,48 +489,44 @@ export default function PatientDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+          transition={{ delay: 1.1 }}
+          className="medical-card"
         >
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-            Quick Actions
-          </h3>
-          <div className="space-y-3">
-            <button className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/30 dark:hover:to-blue-700/30 transition-all duration-200">
-              <div className="flex items-center">
-                <Gamepad2 className="h-5 w-5 text-blue-600 mr-3" />
-                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                  Start Vision Game
-                </span>
-              </div>
-            </button>
-            
-            <button className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 transition-all duration-200">
-              <div className="flex items-center">
-                <Brain className="h-5 w-5 text-green-600 mr-3" />
-                <span className="text-sm font-medium text-green-900 dark:text-green-100">
-                  AI Health Check
-                </span>
-              </div>
-            </button>
-            
-            <button className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/30 dark:hover:to-purple-700/30 transition-all duration-200">
-              <div className="flex items-center">
-                <Calendar className="h-5 w-5 text-purple-600 mr-3" />
-                <span className="text-sm font-medium text-purple-900 dark:text-purple-100">
-                  Book Appointment
-                </span>
-              </div>
-            </button>
-            
-            <button className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-800/30 dark:hover:to-orange-700/30 transition-all duration-200">
-              <div className="flex items-center">
-                <Shield className="h-5 w-5 text-orange-600 mr-3" />
-                <span className="text-sm font-medium text-orange-900 dark:text-orange-100">
-                  Security Check
-                </span>
-              </div>
-            </button>
+          <div className="p-medical-lg">
+            <h3 className="text-medical-lg font-medium text-neutral-900 dark:text-neutral-100 mb-medical-lg">
+              Quick Actions
+            </h3>
+            <div className="space-y-medical-sm">
+              <button className="w-full btn-medical-primary">
+                <Gamepad2 className="h-4 w-4 mr-2" />
+                Start Vision Game
+              </button>
+              
+              <button className="w-full btn-medical-outlined">
+                <Brain className="h-4 w-4 mr-2" />
+                AI Health Check
+              </button>
+              
+              <button className="w-full btn-medical-outlined">
+                <Calendar className="h-4 w-4 mr-2" />
+                Book Appointment
+              </button>
+              
+              <button className="w-full btn-medical-text">
+                <Shield className="h-4 w-4 mr-2" />
+                Security Settings
+              </button>
+            </div>
+
+            {/* Health Tip */}
+            <div className="mt-medical-lg p-medical-md bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-medical-lg border border-primary-200 dark:border-primary-800">
+              <h4 className="text-medical-sm font-medium text-primary-900 dark:text-primary-100 mb-1">
+                💡 Today's Health Tip
+              </h4>
+              <p className="text-medical-xs text-primary-800 dark:text-primary-200">
+                Take a 20-second break every 20 minutes to look at something 20 feet away. This helps reduce eye strain from screen time.
+              </p>
+            </div>
           </div>
         </motion.div>
       </div>

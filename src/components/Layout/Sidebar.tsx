@@ -23,7 +23,9 @@ import {
   Layers,
   MessageSquare,
   Zap,
-  Globe
+  Globe,
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,39 +41,60 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
   const { user } = useAuthStore();
 
   const patientNavigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Health Metrics', href: '/health', icon: Activity },
-    { name: 'Vision Games', href: '/games', icon: Gamepad2 },
-    { name: 'VR Therapy', href: '/vr-therapy', icon: Headphones },
-    { name: 'Appointments', href: '/appointments', icon: Calendar },
-    { name: 'Medical Records', href: '/records', icon: FileText },
-    { name: 'AI Analysis', href: '/ai-analysis', icon: Brain },
-    { name: 'Digital Twin', href: '/digital-twin', icon: Layers },
+    { name: 'Dashboard', href: '/dashboard', icon: Home, description: 'Overview & Health Summary' },
+    { name: 'Health Metrics', href: '/health', icon: Activity, description: 'Vital Signs & Trends' },
+    { name: 'Vision Games', href: '/games', icon: Gamepad2, description: 'Interactive Eye Training' },
+    { name: 'VR Therapy', href: '/vr-therapy', icon: Headphones, description: 'Immersive Rehabilitation' },
+    { name: 'Appointments', href: '/appointments', icon: Calendar, description: 'Schedule & Consultations' },
+    { name: 'Medical Records', href: '/records', icon: FileText, description: 'Health History & Reports' },
+    { name: 'AI Analysis', href: '/ai-analysis', icon: Brain, description: 'Intelligent Health Insights' },
+    { name: 'Digital Twin', href: '/digital-twin', icon: Layers, description: 'Personalized Health Model' },
   ];
 
   const doctorNavigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Patients', href: '/patients', icon: Users },
-    { name: 'Diagnostics', href: '/diagnostics', icon: Calculator },
-    { name: 'AI Tools', href: '/ai-tools', icon: Scan },
-    { name: 'Surgical Analytics', href: '/analytics', icon: BarChart3 },
-    { name: 'Test Results', href: '/test-results', icon: TestTube },
-    { name: 'Telemedicine', href: '/telemedicine', icon: Video },
-    { name: 'Digital Twin', href: '/digital-twin', icon: Layers },
-    { name: 'Research', href: '/research', icon: BookOpen },
+    { name: 'Dashboard', href: '/dashboard', icon: Home, description: 'Clinical Overview' },
+    { name: 'Patients', href: '/patients', icon: Users, description: 'Patient Management' },
+    { name: 'Diagnostics', href: '/diagnostics', icon: Calculator, description: 'Clinical Calculations' },
+    { name: 'AI Tools', href: '/ai-tools', icon: Scan, description: 'AI-Powered Analysis' },
+    { name: 'Surgical Analytics', href: '/analytics', icon: BarChart3, description: 'Performance Metrics' },
+    { name: 'Test Results', href: '/test-results', icon: TestTube, description: 'Laboratory & Imaging' },
+    { name: 'Telemedicine', href: '/telemedicine', icon: Video, description: 'Remote Consultations' },
+    { name: 'Digital Twin', href: '/digital-twin', icon: Layers, description: 'Patient Modeling' },
+    { name: 'Research', href: '/research', icon: BookOpen, description: 'Clinical Research' },
   ];
 
   const aiAdvancedNavigation = [
-    { name: 'EyeGPT Assistant', href: '/eyegpt', icon: MessageSquare, desc: 'AI Clinical Co-pilot' },
-    { name: 'AR Surgical Overlay', href: '/surgical-overlay', icon: Zap, desc: 'Augmented Reality Surgery' },
-    { name: 'VR Vision Therapy', href: '/vr-therapy', icon: Headphones, desc: 'Immersive Rehabilitation' },
+    { 
+      name: 'EyeGPT Assistant', 
+      href: '/eyegpt', 
+      icon: MessageSquare, 
+      description: 'AI Clinical Co-pilot',
+      badge: 'NEW',
+      gradient: 'from-purple-500 to-pink-500'
+    },
+    { 
+      name: 'AR Surgical Overlay', 
+      href: '/surgical-overlay', 
+      icon: Zap, 
+      description: 'Augmented Reality Surgery',
+      badge: 'BETA',
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    { 
+      name: 'VR Vision Therapy', 
+      href: '/vr-therapy', 
+      icon: Headphones, 
+      description: 'Immersive Rehabilitation',
+      badge: 'PRO',
+      gradient: 'from-green-500 to-emerald-500'
+    },
   ];
 
   const commonNavigation = [
-    { name: 'Vision Charts', href: '/advanced', icon: Eye },
-    { name: 'Case Studies', href: '/education', icon: GraduationCap },
-    { name: 'ABDM Compliance', href: '/compliance', icon: Globe },
-    { name: 'Security', href: '/security', icon: Shield },
+    { name: 'Vision Charts', href: '/advanced', icon: Eye, description: 'WHO-Compliant Charts' },
+    { name: 'Case Studies', href: '/education', icon: GraduationCap, description: 'Medical Education' },
+    { name: 'ABDM Compliance', href: '/compliance', icon: Globe, description: 'India Digital Health' },
+    { name: 'Security', href: '/security', icon: Shield, description: 'Data Protection' },
   ];
 
   const navigation = user?.role === 'doctor' ? doctorNavigation : patientNavigation;
@@ -88,7 +111,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
             className="fixed inset-0 z-40 lg:hidden"
           >
             <div
-              className="fixed inset-0 bg-gray-600 bg-opacity-75"
+              className="medical-backdrop"
               onClick={() => setOpen(false)}
             />
           </motion.div>
@@ -103,27 +126,31 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
         }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 lg:translate-x-0 lg:static lg:inset-0",
-          "lg:block"
+          "fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-700 lg:translate-x-0 lg:static lg:inset-0",
+          "lg:block shadow-elevation-3 lg:shadow-none"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Mobile close button */}
-          <div className="flex items-center justify-between p-4 lg:hidden">
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">
+          {/* Mobile header */}
+          <div className="flex items-center justify-between p-medical-md lg:hidden border-b border-neutral-200 dark:border-neutral-700">
+            <span className="text-medical-lg font-medium text-neutral-900 dark:text-neutral-100">
               Navigation
             </span>
             <button
               onClick={() => setOpen(false)}
-              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="p-2 rounded-medical-md text-neutral-400 hover:text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-200"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 pb-4 space-y-1 overflow-y-auto">
-            <div className="space-y-1">
+          <nav className="flex-1 px-medical-md pb-medical-md space-y-medical-sm overflow-y-auto">
+            {/* Main Navigation */}
+            <div className="space-y-1 pt-medical-md">
+              <h3 className="px-medical-sm text-medical-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-medical-sm">
+                Main
+              </h3>
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
@@ -132,25 +159,35 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
                     to={item.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                      isActive
-                        ? "bg-gradient-to-r from-primary-500 to-medical-500 text-white shadow-lg"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                      "medical-nav-item group relative overflow-hidden",
+                      isActive && "active bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 text-primary-700 dark:text-primary-300"
                     )}
                   >
-                    <item.icon
-                      className={cn(
-                        "mr-3 h-5 w-5 transition-colors",
-                        isActive
-                          ? "text-white"
-                          : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                    <div className="flex items-center space-x-medical-sm relative z-10">
+                      <item.icon
+                        className={cn(
+                          "h-5 w-5 transition-colors duration-200",
+                          isActive
+                            ? "text-primary-600 dark:text-primary-400"
+                            : "text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400"
+                        )}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-medical-sm font-medium truncate">
+                          {item.name}
+                        </div>
+                        <div className="text-medical-xs text-neutral-500 dark:text-neutral-400 truncate">
+                          {item.description}
+                        </div>
+                      </div>
+                      {isActive && (
+                        <ChevronRight className="h-4 w-4 text-primary-500" />
                       )}
-                    />
-                    {item.name}
+                    </div>
                     {isActive && (
                       <motion.div
-                        layoutId="activeTab"
-                        className="absolute left-0 w-1 h-8 bg-white rounded-r-full"
+                        layoutId="activeIndicator"
+                        className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-500 to-secondary-500 rounded-r-full"
                         initial={false}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
                       />
@@ -161,11 +198,12 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
             </div>
 
             {/* AI & Advanced Features */}
-            <div className="pt-6">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                AI & Advanced Features
+            <div className="pt-medical-lg">
+              <h3 className="px-medical-sm text-medical-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-medical-sm flex items-center">
+                <Sparkles className="h-3 w-3 mr-1" />
+                AI & Advanced
               </h3>
-              <div className="mt-2 space-y-1">
+              <div className="space-y-1">
                 {aiAdvancedNavigation.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
@@ -174,47 +212,70 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
                       to={item.href}
                       onClick={() => setOpen(false)}
                       className={cn(
-                        "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                        "group relative overflow-hidden rounded-medical-lg p-medical-sm transition-all duration-200",
                         isActive
-                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                          ? `bg-gradient-to-r ${item.gradient} text-white shadow-elevation-2`
+                          : "hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
                       )}
-                      title={item.desc}
                     >
-                      <item.icon
-                        className={cn(
-                          "mr-3 h-5 w-5 transition-colors",
-                          isActive
-                            ? "text-white"
-                            : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
-                        )}
-                      />
-                      <div className="flex-1">
+                      <div className="flex items-center space-x-medical-sm relative z-10">
                         <div className={cn(
-                          "text-sm font-medium",
-                          isActive ? "text-white" : ""
+                          "p-2 rounded-medical-md transition-all duration-200",
+                          isActive 
+                            ? "bg-white/20" 
+                            : "bg-neutral-100 dark:bg-neutral-800 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700"
                         )}>
-                          {item.name}
+                          <item.icon
+                            className={cn(
+                              "h-4 w-4 transition-colors duration-200",
+                              isActive
+                                ? "text-white"
+                                : "text-neutral-600 dark:text-neutral-400"
+                            )}
+                          />
                         </div>
-                        <div className={cn(
-                          "text-xs",
-                          isActive ? "text-purple-100" : "text-gray-500 dark:text-gray-400"
-                        )}>
-                          {item.desc}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className={cn(
+                              "text-medical-sm font-medium truncate",
+                              isActive ? "text-white" : "text-neutral-900 dark:text-neutral-100"
+                            )}>
+                              {item.name}
+                            </span>
+                            {item.badge && (
+                              <span className={cn(
+                                "px-1.5 py-0.5 text-medical-xs font-medium rounded-full",
+                                isActive 
+                                  ? "bg-white/20 text-white" 
+                                  : "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                              )}>
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          <div className={cn(
+                            "text-medical-xs truncate",
+                            isActive ? "text-white/80" : "text-neutral-500 dark:text-neutral-400"
+                          )}>
+                            {item.description}
+                          </div>
                         </div>
                       </div>
+                      {!isActive && (
+                        <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-200 rounded-medical-lg`} />
+                      )}
                     </Link>
                   );
                 })}
               </div>
             </div>
 
-            {/* Common navigation */}
-            <div className="pt-6">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            {/* Tools & Compliance */}
+            <div className="pt-medical-lg">
+              <h3 className="px-medical-sm text-medical-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-medical-sm">
                 Tools & Compliance
               </h3>
-              <div className="mt-2 space-y-1">
+              <div className="space-y-1">
                 {commonNavigation.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
@@ -223,21 +284,26 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
                       to={item.href}
                       onClick={() => setOpen(false)}
                       className={cn(
-                        "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                        isActive
-                          ? "bg-gradient-to-r from-primary-500 to-medical-500 text-white shadow-lg"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                        "medical-nav-item group",
+                        isActive && "active"
                       )}
                     >
                       <item.icon
                         className={cn(
-                          "mr-3 h-5 w-5 transition-colors",
+                          "h-5 w-5 transition-colors duration-200",
                           isActive
-                            ? "text-white"
-                            : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300"
+                            ? "text-primary-600 dark:text-primary-400"
+                            : "text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400"
                         )}
                       />
-                      {item.name}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-medical-sm font-medium truncate">
+                          {item.name}
+                        </div>
+                        <div className="text-medical-xs text-neutral-500 dark:text-neutral-400 truncate">
+                          {item.description}
+                        </div>
+                      </div>
                     </Link>
                   );
                 })}
@@ -246,29 +312,30 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
           </nav>
 
           {/* User info */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
+          <div className="p-medical-md border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+            <div className="flex items-center space-x-medical-sm">
               {user?.avatar ? (
                 <img
                   src={user.avatar}
                   alt={user.name}
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover ring-2 ring-neutral-200 dark:ring-neutral-700"
                 />
               ) : (
-                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary-500 to-medical-500 flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center ring-2 ring-neutral-200 dark:ring-neutral-700">
+                  <span className="text-medical-sm font-medium text-white">
                     {user?.name?.charAt(0)}
                   </span>
                 </div>
               )}
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="flex-1 min-w-0">
+                <p className="text-medical-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
                   {user?.name}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                  {user?.role}
+                <p className="text-medical-xs text-neutral-500 dark:text-neutral-400 capitalize truncate">
+                  {user?.role} • Online
                 </p>
               </div>
+              <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
             </div>
           </div>
         </div>
